@@ -1,0 +1,17 @@
+name = "L^"
+grammar = "lhat"
+path_suffixes = ["lh"]
+line_comments = ["# "]
+block_comment = ["#[", "]#"]
+tab_size = 4
+debuggers = ["Lhat"]
+word_characters = ["^", "$"]
+autoclose_before = ";:.,=}])"
+brackets = [
+    { start = "{", end = "}", close = true, newline = true, not_in = ["string", "comment"] },
+    { start = "[", end = "]", close = true, newline = true, not_in = ["string", "comment"] },
+    { start = "(", end = ")", close = true, newline = true, not_in = ["string", "comment"] },
+    { start = "\"", end = "\"", close = true, newline = false, not_in = ["string", "comment"] },
+    { start = "'", end = "'", close = true, newline = false, not_in = ["string", "comment"] },
+    { start = "`", end = "`", close = true, newline = false, not_in = ["string", "comment"] },
+]

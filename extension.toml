@@ -1,0 +1,25 @@
+id = "lhat"
+name = "L^ Language Support"
+version = "0.1.0"
+schema_version = 1
+authors = ["SAM-tak"]
+description = "L^ and LTON language support using lhatls"
+repository = "https://github.com/SAM-tak/lhat-zed-extension"
+
+[language_servers.lhatls]
+name = "L^ Language Server"
+languages = ["L^", "LTON"]
+
+[language_servers.lhatls.language_ids]
+"L^" = "lhat"
+"LTON" = "lton"
+
+[debug_adapters.Lhat]
+schema_path = "debug_adapter_schemas/Lhat.json"
+
+# For local development, npm run prepare:dev generates a file:// manifest
+# pinned to a committed revision. Pin this revision before publishing.
+[grammars.lhat]
+repository = "https://github.com/SAM-tak/lhat-zed-extension"
+rev = "main"
+path = "tree-sitter-lhat"

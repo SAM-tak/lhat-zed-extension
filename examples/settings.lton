@@ -1,0 +1,4 @@
+# LTON is the inside of a table literal.
+name = "L^ for Zed",
+enabled = true^,
+values = {0, 1, 2},

@@ -1,0 +1,16 @@
+{
+  "grammars": [{
+    "name": "lhat",
+    "camelcase": "Lhat",
+    "scope": "source.lhat",
+    "path": ".",
+    "file-types": ["lh", "lton"]
+  }],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "Apache-2.0",
+    "description": "Structural editor grammar for L^ and LTON",
+    "authors": [{"name": "SAM-tak"}],
+    "links": {"repository": "https://github.com/SAM-tak/lhat-zed-extension"}
+  }
+}

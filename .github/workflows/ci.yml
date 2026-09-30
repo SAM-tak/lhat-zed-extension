@@ -1,0 +1,26 @@
+name: Check extension
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@1.93.1
+        with:
+          targets: wasm32-wasip2
+          components: rustfmt, clippy
+      - run: npm ci
+      - run: npm run generate
+      - run: git diff --exit-code -- tree-sitter-lhat/src
+      - run: npm test
+      - run: npm run check:queries
+      - run: cargo fmt --check
+      - run: cargo clippy --locked --target wasm32-wasip2 -- -D warnings
+      - run: cargo build --locked --release --target wasm32-wasip2
