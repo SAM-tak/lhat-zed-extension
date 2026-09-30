@@ -1,0 +1,6 @@
+# Hats in comments stay comments: if^ ^^^
+let^ value: number^ = 1
+let^ text = "if^ ^^^"
+let^ raw = 'self^^'
+let^ `name^` = value
+let^ interpolated = $"text^ {value.tostring^()}"

@@ -8,7 +8,8 @@
     "check:queries": "node scripts/check-queries.mjs",
     "smoke:lsp": "node scripts/smoke-lsp.mjs",
     "smoke:dap": "node scripts/smoke-dap.mjs",
-    "prepare:dev": "node scripts/prepare-dev.mjs"
+    "prepare:dev": "node scripts/prepare-dev.mjs",
+    "preview:grammar": "npm run generate && npm test && npm run check:queries && node scripts/preview-grammar.mjs"
   },
   "devDependencies": {
     "tree-sitter-cli": "0.25.10"

@@ -1,17 +1,20 @@
 (identifier) @variable
 (name_literal) @variable
-(hat_identifier) @keyword
-((hat_identifier) @type.builtin
- (#match? @type.builtin "^(number|string|bool|nil|any|t|c|error|Self)\\^+$"))
-((hat_identifier) @boolean
- (#match? @boolean "^(true|false)\\^+$"))
-((hat_identifier) @operator
- (#match? @operator "^(and|or|is|fits|as)\\^+$"))
-((hat_identifier) @variable.special
- (#match? @variable.special "^(this|it|index|self|super|L)\\^+$"))
-((hat_identifier) @function
- (#match? @function "^(typeof|id|width|autowidth|prolog|prologue|pre|premain|first|main|last|epilog|epilogue)\\^+$"))
-(scoped_identifier) @variable.special
+(hat_word) @keyword
+((hat_word) @type.builtin
+ (#match? @type.builtin "^(number|string|bool|nil|any|t|c|error|Self)$"))
+((hat_word) @boolean
+ (#match? @boolean "^(true|false)$"))
+((hat_word) @operator
+ (#match? @operator "^(and|or|is|fits|as)$"))
+((hat_word) @variable.special
+ (#match? @variable.special "^(this|it|index|self|super|L)$"))
+((hat_word) @function
+ (#match? @function "^(typeof|id|width|autowidth|prolog|prologue|pre|premain|first|main|last|epilog|epilogue)$"))
+(scoped_name) @variable.special
+; The comment prefix supplies a muted fallback in uncustomized themes.
+; This is a highlight only, not a comment scope in overrides.scm.
+(hat_suffix) @comment.lhat_hat
 (annotation) @attribute
 (number) @number
 [(string) (raw_string) (line_string)] @string

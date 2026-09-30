@@ -17,8 +17,12 @@ module.exports = grammar({
       $.line_comment, $.block_comment,
     ),
     identifier: _ => identifier,
-    hat_identifier: _ => token(seq(identifier, /\^+/)),
-    scoped_identifier: _ => token(seq(/\$[\$\^]*/, identifier, /\^*/)),
+    // Keep the suffix as a separate node so themes can dim only the hats.
+    // token.immediate preserves the rule that hats must touch the name.
+    hat_identifier: $ => prec(1, seq(alias($.identifier, $.hat_word), $.hat_suffix)),
+    hat_suffix: _ => token.immediate(/\^+/),
+    scoped_identifier: $ => prec(1, seq($.scoped_name, optional($.hat_suffix))),
+    scoped_name: _ => token(seq(/\$[\$\^]*/, identifier)),
     annotation: _ => token(seq('@', identifier)),
     name_literal: _ => token(seq('`', repeat1(choice('``', /[^`\r\n]/)), '`')),
     number: _ => token(choice(

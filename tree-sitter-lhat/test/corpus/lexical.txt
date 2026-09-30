@@ -4,8 +4,8 @@ Bare and hat names, scopes and annotations
 if if^ this^^^ 日本語 $value $$root $^^self^ @tool `is empty?` `a``b`
 ---
 (source_file
-  (identifier) (hat_identifier) (hat_identifier) (identifier)
-  (scoped_identifier) (scoped_identifier) (scoped_identifier)
+  (identifier) (hat_identifier (hat_word) (hat_suffix)) (hat_identifier (hat_word) (hat_suffix)) (identifier)
+  (scoped_identifier (scoped_name)) (scoped_identifier (scoped_name)) (scoped_identifier (scoped_name) (hat_suffix))
   (annotation) (name_literal) (name_literal))
 
 ==================
@@ -28,7 +28,7 @@ let^ x = 1 # tail
 ---
 (source_file
   (line_comment) (block_comment) (block_comment)
-  (hat_identifier) (identifier) (operator) (number) (line_comment))
+  (hat_identifier (hat_word) (hat_suffix)) (identifier) (operator) (number) (line_comment))
 
 ==================
 Strings protect comment markers and brackets
@@ -41,7 +41,7 @@ let^ next = 1
   (string (string_content))
   (string (escape_sequence) (escape_sequence) (escape_sequence))
   (raw_string) (name_literal) (line_string)
-  (hat_identifier) (identifier) (operator) (number))
+  (hat_identifier (hat_word) (hat_suffix)) (identifier) (operator) (number))
 
 ==================
 Balanced groups and optional access
@@ -80,7 +80,7 @@ values = {0, 1, 2},
 ---
 (source_file
   (identifier) (operator) (string (string_content)) (delimiter)
-  (identifier) (operator) (hat_identifier) (delimiter)
+  (identifier) (operator) (hat_identifier (hat_word) (hat_suffix)) (delimiter)
   (identifier) (operator)
   (braced_group (number) (delimiter) (number) (delimiter) (number)) (delimiter))
 

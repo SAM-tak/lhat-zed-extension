@@ -100,22 +100,60 @@
       "value": "[_\\p{XID_Start}][_\\p{XID_Continue}]*"
     },
     "hat_identifier": {
-      "type": "TOKEN",
+      "type": "PREC",
+      "value": 1,
       "content": {
         "type": "SEQ",
         "members": [
           {
-            "type": "PATTERN",
-            "value": "[_\\p{XID_Start}][_\\p{XID_Continue}]*"
+            "type": "ALIAS",
+            "content": {
+              "type": "SYMBOL",
+              "name": "identifier"
+            },
+            "named": true,
+            "value": "hat_word"
           },
           {
-            "type": "PATTERN",
-            "value": "\\^+"
+            "type": "SYMBOL",
+            "name": "hat_suffix"
           }
         ]
       }
     },
+    "hat_suffix": {
+      "type": "IMMEDIATE_TOKEN",
+      "content": {
+        "type": "PATTERN",
+        "value": "\\^+"
+      }
+    },
     "scoped_identifier": {
+      "type": "PREC",
+      "value": 1,
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "SYMBOL",
+            "name": "scoped_name"
+          },
+          {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "hat_suffix"
+              },
+              {
+                "type": "BLANK"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "scoped_name": {
       "type": "TOKEN",
       "content": {
         "type": "SEQ",
@@ -127,10 +165,6 @@
           {
             "type": "PATTERN",
             "value": "[_\\p{XID_Start}][_\\p{XID_Continue}]*"
-          },
-          {
-            "type": "PATTERN",
-            "value": "\\^*"
           }
         ]
       }

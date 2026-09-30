@@ -60,6 +60,9 @@ npm run prepare:dev
 このコマンドはコミットを作らず、現在の `HEAD` とローカル `file://` URL を
 使う開発用マニフェストを `dist/dev/extension.toml` に生成する。
 未コミットの文法変更がある場合は、古い文法を使わないようエラーにする。
+また、ホームディレクトリで Rust の WASI ターゲット確認を行う。
+Zed は拡張ディレクトリへ移動する前にも `rustc` を呼ぶため、プロジェクト内の
+`rust-toolchain.toml` だけでなく、プロジェクト外で選択される Rust も対応している必要がある。
 
 1. Zed のコマンドパレットで `zed: install dev extension` を実行。
 2. このプロジェクトの **`dist/dev`** を選択。
@@ -72,6 +75,24 @@ Rust・言語設定を変更したら `npm run prepare:dev` を再実行し、Ze
 公開時は `extension.toml` のリポジトリ URL を実際の公開先に合わせ、
 `grammars.lhat.rev` を生成済みパーサーを含むコミット SHA に固定する。
 現在の `main` は公開前の仮指定。
+
+### `compiling Rust extension` でインストールに失敗する場合
+
+Zed の `zed: open log` で詳細を確認する。
+`unknown print request 'target-libdir'` があれば、Zed の事前チェックで古い Rust が
+選ばれている。プロジェクト内で `cargo build` が成功しても、この確認は別環境になる。
+
+本プロジェクトのバージョンを既定にする場合:
+
+```sh
+rustup toolchain install 1.93.1 --profile minimal --target wasm32-wasip2
+rustup default 1.93.1
+npm run prepare:dev
+```
+
+`rustup default` はユーザー全体の既定を変更する。個別プロジェクトの
+`rust-toolchain.toml` や rustup override による指定は引き続き優先される。
+準備が通ったら、Zed で再び `dist/dev` を選択する。
 
 ## LSP 設定
 
@@ -106,6 +127,45 @@ Zed の `settings.json` またはプロジェクトの `.zed/settings.json`:
 - VSCode の `lhat.serverPath` などを Zed が直接読むことはない。
 
 言語サーバーの再起動は Zed 標準の `editor: restart language server` を使用。
+
+### ハイライトが表示されない場合
+
+グローバル設定が `"semantic_tokens": "full"` の場合、Tree-sitter のハイライトは
+使われない。上記のように **L^ と LTON に `"combined"` を設定**すると、文法による
+色分けと LSP のセマンティックハイライトを併用できる。
+`lhatls was not found` がログに出る場合は `lsp.lhatls.binary.path` も指定する。
+設定後も反映されなければ `.lh` ファイルを開き直し、必要に応じて言語サーバーを再起動する。
+
+### ハット `^` を控えめに表示する
+
+`if^` の `if` と `^`、`self^^` の `self` と `^^` を別々にハイライトする。
+ハット専用キャプチャは `comment.lhat_hat`。未設定のテーマではコメント色に
+フォールバックするが、コードをコメント扱いにする設定ではない。
+文字列・コメント・バッククォート名の中の `^` は、それぞれ本来の色のまま。
+
+VSCode 版と同じ半透明グレーにするには、Zed のユーザー設定に以下を追加する。
+One Dark／One Light ではコメント色とほぼ同じ明るさにしている
+（`#5d636f`／`a2a3a7`）。さらに薄くするにはアルファ値を `#rrggbbaa` の形で下げる:
+
+```json
+{
+  "theme_overrides": {
+    "One Dark": {
+      "syntax": {
+        "comment.lhat_hat": { "color": "#5d636f", "font_style": "normal" }
+      }
+    },
+    "One Light": {
+      "syntax": {
+        "comment.lhat_hat": { "color": "#a2a3a7", "font_style": "normal" }
+      }
+    }
+  }
+}
+```
+
+別のテーマを使う場合は、そのテーマ名に置き換える。
+セマンティックハイライトは引き続き `combined` を使用する。
 
 ## デバッグ
 
@@ -161,6 +221,16 @@ npm run smoke:dap -- ../lhat/build/release/lhat.exe
 
 これらは Zed UI の E2E テストではない。実機での開発拡張インストールと
 キー操作・表示確認は別途必要。
+
+### 未コミットの文法を開発拡張でプレビューする
+
+`dist/dev` を一度インストールした環境では、`npm run preview:grammar` で
+作業ツリーの文法を生成・テストし、Zed と同じ wasi-sdk オプションでコンパイルして
+`dist/dev` の文法 WASM と言語設定を更新できる。Zed の拡張をリロードして確認する。
+Windows では Zed が取得した wasi-sdk を検出する。それ以外では `WASI_SDK_PATH` を指定する。
+
+これはローカルのプレビュー。通常のインストールはマニフェストの Git リビジョンを
+使うため、クリーンな再インストール前に文法をコミットして `npm run prepare:dev` を実行する。
 
 ## 構成
 
