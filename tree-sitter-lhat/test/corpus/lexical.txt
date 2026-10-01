@@ -3,20 +3,52 @@ Bare and hat names, scopes and annotations
 ==================
 if if^ this^^^ 日本語 $value $$root $^^self^ @tool `is empty?` `a``b`
 ---
+
 (source_file
-  (identifier) (hat_identifier (hat_word) (hat_suffix)) (hat_identifier (hat_word) (hat_suffix)) (identifier)
-  (scoped_identifier (scoped_name)) (scoped_identifier (scoped_name)) (scoped_identifier (scoped_name) (hat_suffix))
-  (annotation) (name_literal) (name_literal))
+  (identifier)
+  (hat_identifier
+    (hat_word)
+    (hat_suffix))
+  (hat_identifier
+    (hat_word)
+    (hat_suffix))
+  (identifier)
+  (scoped_identifier
+    (scoped_name))
+  (scoped_identifier
+    (scoped_name))
+  (scoped_identifier
+    (scoped_name)
+    (hat_suffix))
+  (annotation)
+  (name_literal)
+  (name_literal))
 
 ==================
 Numbers and numeric member keys
 ==================
 0 1_000 0xff 0b10 0o17 1.25 1e-3 2.5E+2 a.0.0 a?. 0.1
 ---
+
 (source_file
-  (number) (number) (number) (number) (number) (number) (number) (number)
-  (identifier) (numeric_member (number)) (numeric_member (number))
-  (identifier) (numeric_member (number)) (numeric_member (number)))
+  (number)
+  (number)
+  (number)
+  (number)
+  (number)
+  (number)
+  (number)
+  (number)
+  (member_reference
+    (identifier)
+    (number))
+  (numeric_member
+    (number))
+  (member_reference
+    (identifier)
+    (number))
+  (numeric_member
+    (number)))
 
 ==================
 Nested and disabled comments
@@ -26,9 +58,23 @@ Nested and disabled comments
 #[~ let^ x = "unused" ]#
 let^ x = 1 # tail
 ---
+
 (source_file
-  (line_comment) (block_comment) (block_comment)
-  (hat_identifier (hat_word) (hat_suffix)) (identifier) (operator) (number) (line_comment))
+  (line_comment)
+  (block_comment)
+  (block_comment)
+  (binding_declaration
+    (binding_keyword
+      (hat_word)
+      (hat_suffix))
+    (binding_targets
+      (binding_target
+        (qualified_name
+          (identifier))))
+    (operator)
+    (value_list
+      (number)))
+  (line_comment))
 
 ==================
 Strings protect comment markers and brackets
@@ -37,39 +83,72 @@ Strings protect comment markers and brackets
 """ rest of line " # [
 let^ next = 1
 ---
+
 (source_file
-  (string (string_content))
-  (string (escape_sequence) (escape_sequence) (escape_sequence))
-  (raw_string) (name_literal) (line_string)
-  (hat_identifier (hat_word) (hat_suffix)) (identifier) (operator) (number))
+  (string
+    (string_content))
+  (string
+    (escape_sequence)
+    (escape_sequence)
+    (escape_sequence))
+  (raw_string)
+  (name_literal)
+  (line_string)
+  (binding_declaration
+    (binding_keyword
+      (hat_word)
+      (hat_suffix))
+    (binding_targets
+      (binding_target
+        (qualified_name
+          (identifier))))
+    (operator)
+    (value_list
+      (number))))
 
 ==================
 Balanced groups and optional access
 ==================
 f?(a, {x = [1, 2]})?[0]
 ---
+
 (source_file
   (identifier)
   (parenthesized_group
-    (identifier) (delimiter)
-    (braced_group (identifier) (operator)
-      (bracketed_group (number) (delimiter) (number))))
-  (bracketed_group (number)))
+    (identifier)
+    (delimiter)
+    (braced_group
+      (identifier)
+      (operator)
+      (bracketed_group
+        (number)
+        (delimiter)
+        (number))))
+  (bracketed_group
+    (number)))
 
 ==================
 Nested string interpolation
 ==================
 $"hello {{ {foo({value = $"{x}"})} }}"
 ---
+
 (source_file
   (interpolated_string
-    (interpolated_content) (interpolation_escape) (interpolated_content)
+    (interpolated_content)
+    (interpolation_escape)
+    (interpolated_content)
     (interpolation
       (identifier)
       (parenthesized_group
-        (braced_group (identifier) (operator)
-          (interpolated_string (interpolation (identifier))))))
-    (interpolated_content) (interpolation_escape)))
+        (braced_group
+          (identifier)
+          (operator)
+          (interpolated_string
+            (interpolation
+              (identifier))))))
+    (interpolated_content)
+    (interpolation_escape)))
 
 ==================
 LTON root table entries
@@ -78,19 +157,45 @@ name = "demo",
 enabled = true^,
 values = {0, 1, 2},
 ---
+
 (source_file
-  (identifier) (operator) (string (string_content)) (delimiter)
-  (identifier) (operator) (hat_identifier (hat_word) (hat_suffix)) (delimiter)
-  (identifier) (operator)
-  (braced_group (number) (delimiter) (number) (delimiter) (number)) (delimiter))
+  (table_entry
+    (identifier)
+    (operator)
+    (string
+      (string_content)))
+  (delimiter)
+  (table_entry
+    (identifier)
+    (operator)
+    (hat_identifier
+      (hat_word)
+      (hat_suffix)))
+  (delimiter)
+  (table_entry
+    (identifier)
+    (operator)
+    (table_literal
+      (table_body
+        (number)
+        (delimiter)
+        (number)
+        (delimiter)
+        (number))))
+  (delimiter))
 
 ==================
 Interpolation escapes, literal closing brace and format text
 ==================
 $"\"\n} {value:%04d # 'raw'}"
 ---
+
 (source_file
   (interpolated_string
-    (escape_sequence) (escape_sequence)
-    (interpolated_content) (interpolated_content)
-    (interpolation (identifier) (format_specifier))))
+    (escape_sequence)
+    (escape_sequence)
+    (interpolated_content)
+    (interpolated_content)
+    (interpolation
+      (identifier)
+      (format_specifier))))

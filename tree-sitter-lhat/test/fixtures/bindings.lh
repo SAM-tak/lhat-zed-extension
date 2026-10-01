@@ -1,0 +1,2 @@
+let^ first, second, third = 1, 2, 3
+let^ typed: t^{ field: number^ } = { field = 1 }

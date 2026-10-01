@@ -8,7 +8,9 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const cli = path.join(root, 'node_modules/tree-sitter-cli', process.platform === 'win32' ? 'tree-sitter.exe' : 'tree-sitter');
 for (const name of readdirSync(path.join(root, 'languages/lhat')).filter(name => name.endsWith('.scm'))) {
   const query = path.join(root, 'languages/lhat', name);
-  assert.equal(readFileSync(query, 'utf8'), readFileSync(path.join(root, 'languages/lton', name), 'utf8'), `${name}: LTON queries must match L^`);
+  if (name !== 'outline.scm') {
+    assert.equal(readFileSync(query, 'utf8'), readFileSync(path.join(root, 'languages/lton', name), 'utf8'), `${name}: LTON queries must match L^`);
+  }
   const result = spawnSync(cli, ['query', query, path.join(root, 'examples/hello.lh')], {
     cwd: path.join(root, 'tree-sitter-lhat'), encoding: 'utf8',
   });

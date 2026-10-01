@@ -26,5 +26,19 @@
 [(line_comment) (block_comment)] @comment
 (operator) @operator
 (numeric_member ["." "?."] @operator)
+(member_reference ["." "?."] @operator)
+(qualified_name "." @operator)
+(postfix_expression ["." "?." "?"] @operator)
+(union_type ["|" "&"] @operator)
+(optional_type "?" @operator)
+(type_annotation ":" @punctuation.delimiter)
+(signature ["," ":"] @punctuation.delimiter)
+(callable_type ";" @punctuation.delimiter)
+(enum_member "=" @operator)
+(enum_body "," @punctuation.delimiter)
+(error_body "," @punctuation.delimiter)
+(binding_targets "," @punctuation.delimiter)
+(value_list "," @punctuation.delimiter)
+(control_value ";" @punctuation.delimiter)
 (delimiter) @punctuation.delimiter
 ["{" "}" "[" "]" "(" ")" "?(" "?["] @punctuation.bracket

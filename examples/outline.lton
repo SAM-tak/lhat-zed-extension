@@ -1,0 +1,12 @@
+# Root table keys and nested table keys.
+name = "demo",
+enabled = true^,
+options = {
+    width = 800,
+    renderer = { quality = "high" },
+    ["computed"] = 1,
+    7,
+},
+`日本語のキー` = "value",
+text = "let^ fake = 1",
+#[ ignored = { nested = 1 } ]#
