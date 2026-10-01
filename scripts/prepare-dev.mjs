@@ -2,19 +2,21 @@
 // committed checkout, keeping the development manifest out of source control.
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 import { homedir } from 'node:os';
+import { root, grammarRoot } from './grammar-path.mjs';
 
-const root = fileURLToPath(new URL('../', import.meta.url));
 let revision;
 try {
-  revision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
-  execFileSync('git', ['cat-file', '-e', `${revision}:tree-sitter-lhat/src/parser.c`], { cwd: root, stdio: 'pipe' });
+  revision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: grammarRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+  for (const file of ['src/parser.c', 'lton/src/parser.c']) {
+    execFileSync('git', ['cat-file', '-e', `${revision}:${file}`], { cwd: grammarRoot, stdio: 'pipe' });
+  }
 } catch {
-  throw new Error('Commit the extension and generated tree-sitter-lhat/src files to a Git repository first. Zed requires a committed grammar revision.');
+  throw new Error(`Commit the grammar and generated parsers in ${grammarRoot} first. Zed requires a committed grammar revision.`);
 }
-const changes = execFileSync('git', ['status', '--porcelain', '--', 'tree-sitter-lhat'], { cwd: root, encoding: 'utf8' });
+const changes = execFileSync('git', ['status', '--porcelain'], { cwd: grammarRoot, encoding: 'utf8' });
 if (changes.trim()) throw new Error('The grammar has uncommitted changes. Generate, test and commit it before preparing the dev extension.');
 
 // Zed probes rustc before changing into the extension directory. A successful
@@ -42,7 +44,7 @@ for (const name of ['Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml', 'src', 'l
   if (existsSync(path.join(root, name))) cpSync(path.join(root, name), path.join(destination, name), { recursive: true });
 }
 const manifest = readFileSync(path.join(root, 'extension.toml'), 'utf8')
-  .replace(/(\[grammars\.lhat\]\s*repository = )"[^"]+"/, `$1${JSON.stringify(pathToFileURL(root).href.replace(/\/$/, ''))}`)
-  .replace(/^rev = "[^"]+"/m, `rev = "${revision}"`);
+  .replace(/(\[grammars\.(?:lhat|lton)\]\s*repository = )"[^"]+"/g, (_, prefix) => prefix + JSON.stringify(pathToFileURL(grammarRoot).href.replace(/\/$/, '')))
+  .replace(/^rev = "[^"]+"/gm, `rev = "${revision}"`);
 writeFileSync(path.join(destination, 'extension.toml'), manifest);
 console.log(`In Zed, run "zed: install dev extension" and select:\n${destination}`);

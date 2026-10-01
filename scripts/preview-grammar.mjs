@@ -3,10 +3,9 @@
 // the working tree with the same wasi-sdk flags and updates the preview only.
 import { cpSync, existsSync, renameSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { root, grammars } from './grammar-path.mjs';
 
-const root = fileURLToPath(new URL('../', import.meta.url));
 const dev = path.join(root, 'dist/dev');
 const grammarDir = path.join(dev, 'grammars');
 if (!existsSync(path.join(dev, 'extension.wasm')) || !existsSync(grammarDir)) {
@@ -17,13 +16,15 @@ const sdk = process.env.WASI_SDK_PATH ?? (process.platform === 'win32' && proces
 if (!sdk) throw new Error('Set WASI_SDK_PATH to the wasi-sdk directory used by Zed.');
 const clang = path.join(sdk, 'bin', process.platform === 'win32' ? 'clang.exe' : 'clang');
 if (!existsSync(clang)) throw new Error(`wasi-sdk clang not found: ${clang}`);
-const source = path.join(root, 'tree-sitter-lhat/src');
-const output = path.join(grammarDir, 'lhat.preview.wasm');
-execFileSync(clang, [
-  '-fPIC', '-shared', '-Os', '-Wl,--export=tree_sitter_lhat',
-  '-o', output, '-I', source, path.join(source, 'parser.c'), path.join(source, 'scanner.c'),
-], { cwd: root, stdio: 'inherit' });
-renameSync(output, path.join(grammarDir, 'lhat.wasm'));
+for (const { name, directory } of grammars) {
+  const source = path.join(directory, 'src');
+  const output = path.join(grammarDir, `${name}.preview.wasm`);
+  execFileSync(clang, [
+    '-fPIC', '-shared', '-Os', `-Wl,--export=tree_sitter_${name}`,
+    '-o', output, '-I', source, path.join(source, 'parser.c'), path.join(source, 'scanner.c'),
+  ], { cwd: root, stdio: 'inherit' });
+  renameSync(output, path.join(grammarDir, `${name}.wasm`));
+}
 cpSync(path.join(root, 'languages'), path.join(dev, 'languages'), { recursive: true });
 console.log('Updated dist/dev grammar WASM and language queries. Reload extensions in Zed.');
 console.log('This is a working-tree preview. Commit the grammar and run prepare:dev before a clean reinstall.');

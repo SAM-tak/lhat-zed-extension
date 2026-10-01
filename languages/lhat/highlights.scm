@@ -25,20 +25,15 @@
 (interpolation ["{" "}"] @punctuation.special)
 [(line_comment) (block_comment)] @comment
 (operator) @operator
-(numeric_member ["." "?."] @operator)
-(member_reference ["." "?."] @operator)
-(qualified_name "." @operator)
-(postfix_expression ["." "?." "?"] @operator)
-(union_type ["|" "&"] @operator)
-(optional_type "?" @operator)
-(type_annotation ":" @punctuation.delimiter)
-(signature ["," ":"] @punctuation.delimiter)
-(callable_type ";" @punctuation.delimiter)
-(enum_member "=" @operator)
-(enum_body "," @punctuation.delimiter)
-(error_body "," @punctuation.delimiter)
-(binding_targets "," @punctuation.delimiter)
-(value_list "," @punctuation.delimiter)
-(control_value ";" @punctuation.delimiter)
-(delimiter) @punctuation.delimiter
+(assignment_operator) @operator
+(member_expression ["." "?."] @operator)
+["," ";" ":"] @punctuation.delimiter
+(call_expression function: (identifier) @function)
+(call_expression function: (member_expression member: (identifier) @function.method))
+(parameter name: (identifier) @variable.parameter)
+(table_field name: (identifier) @property)
+(definition_member name: (identifier) @property)
+(type_member name: (identifier) @property)
+(enum_declaration name: (identifier) @type)
+(error_declaration name: (identifier) @type)
 ["{" "}" "[" "]" "(" ")" "?(" "?["] @punctuation.bracket

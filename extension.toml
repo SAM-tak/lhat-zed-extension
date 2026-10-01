@@ -18,8 +18,12 @@ languages = ["L^", "LTON"]
 schema_path = "debug_adapter_schemas/Lhat.json"
 
 # For local development, npm run prepare:dev generates a file:// manifest
-# pinned to a committed revision. Pin this revision before publishing.
+# pinned to the local grammar checkout's committed revision.
 [grammars.lhat]
-repository = "https://github.com/SAM-tak/lhat-zed-extension"
-rev = "main"
-path = "tree-sitter-lhat"
+repository = "https://github.com/SAM-tak/tree-sitter-lhat"
+rev = "13ef3e005e9c0cd9eb21176043d486435d6f5e5e"
+
+[grammars.lton]
+repository = "https://github.com/SAM-tak/tree-sitter-lhat"
+rev = "13ef3e005e9c0cd9eb21176043d486435d6f5e5e"
+path = "lton"

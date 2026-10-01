@@ -9,6 +9,7 @@ L^（エルハット）の Zed 拡張。VSCode 版の言語設定を移植し、
 | --- | --- |
 | `.lh` / `.lton` の認識 | L^ / LTON を別言語として登録 |
 | シンタックスハイライト | Tree-sitter。ハット識別子、日本語、数値、文字列補間、入れ子コメントなど |
+| アウトライン・構文選択 | L^ の宣言・メソッド、LTON のキー。関数・定義・コメントの text objects |
 | 括弧対応・自動閉じ・インデント | Tree-sitter と言語設定 |
 | 行・ブロックコメント | `#` / `#[ ... ]#` |
 | 診断・補完・ホバー・定義移動 | `lhatls` の標準 LSP 機能 |
@@ -16,9 +17,12 @@ L^（エルハット）の Zed 拡張。VSCode 版の言語設定を移植し、
 | セマンティックハイライト | Zed の `semantic_tokens` 設定で有効化 |
 | デバッグ起動 | `lhat --dap=PORT` への TCP 接続。停止・ステップ・変数表示などは Zed の DAP UI |
 
-Tree-sitter 文法は**字句と括弧構造を扱うエディター用文法**。
-完全な L^ 構文検証・型検査、LTON 固有の制限は `lhatls` に任せる。
-構造化された宣言・関数の構文木と Zed 用 `outline.scm` は未実装。
+Tree-sitter 文法は独立した [tree-sitter-lhat](https://github.com/SAM-tak/tree-sitter-lhat)
+で管理し、宣言・式・関数・型・制御構文を構造化する。
+L^ は文の列、LTON はテーブル要素の列として別々の開始規則で解析する。
+この拡張には文法・生成済み C パーサーを同梱しない。
+`languages/` のハイライト・アウトラインなどのクエリーは Zed との接続部分として管理する。
+厳密な構文診断・型検査、LTON 固有の制限は `lhatls` に任せる。
 VSCode 固有の「Copy Signature」「Toggle Disabled Code」コマンドも未移植。
 
 ## 必要なもの
@@ -38,6 +42,17 @@ Zed は文法の WASM ビルドに必要な wasi-sdk を自動取得する。
 この段階では Marketplace 公開前。**リポジトリ直下をそのまま Install Dev
 Extension に指定せず、`dist/dev` を生成して使う。**
 
+文法リポジトリを拡張と同じ親ディレクトリに配置する:
+
+```text
+repos/
+  lhat-zed-extension/
+  tree-sitter-lhat/
+```
+
+別の場所なら環境変数 `LHAT_GRAMMAR_PATH` に文法リポジトリのパスを指定する。
+以下のコマンドは拡張ディレクトリで実行する。生成・テストは外部文法に対して動く。
+
 ```sh
 npm ci
 npm run generate
@@ -46,10 +61,9 @@ npm run check:queries
 cargo build --locked --target wasm32-wasip2
 ```
 
-Zed は開発拡張でも文法を Git から取得するため、生成済みの
-`tree-sitter-lhat/src/parser.c`・`grammar.json`・`node-types.json`・ヘッダーと
-`scanner.c` を含むコミットが必要。新しい作業ディレクトリなら、まず Git
-リポジトリを作成し、内容を確認して初回コミットを作る。
+Zed は開発拡張でも文法を Git から取得するため、**文法リポジトリ側**で
+`src/` と `lton/src/` の生成済みパーサー・ヘッダー・スキャナーを含む
+コミットが必要。
 
 コミット後に実行:
 
@@ -57,7 +71,7 @@ Zed は開発拡張でも文法を Git から取得するため、生成済み�
 npm run prepare:dev
 ```
 
-このコマンドはコミットを作らず、現在の `HEAD` とローカル `file://` URL を
+このコマンドはコミットを作らず、**文法リポジトリの `HEAD`** とローカル `file://` URL を
 使う開発用マニフェストを `dist/dev/extension.toml` に生成する。
 未コミットの文法変更がある場合は、古い文法を使わないようエラーにする。
 また、ホームディレクトリで Rust の WASI ターゲット確認を行う。
@@ -72,9 +86,10 @@ Zed は拡張ディレクトリへ移動する前にも `rustc` を呼ぶため�
 Rust・言語設定を変更したら `npm run prepare:dev` を再実行し、Zed で開発拡張を
 再ビルドする。文法を変更した場合は、先に生成・テスト・コミットも行う。
 
-公開時は `extension.toml` のリポジトリ URL を実際の公開先に合わせ、
-`grammars.lhat.rev` を生成済みパーサーを含むコミット SHA に固定する。
-現在の `main` は公開前の仮指定。
+`extension.toml` の `grammars.lhat.rev` と `grammars.lton.rev` は、
+別リポジトリの同じコミット SHA に固定済み。文法更新時は両方を更新する。
+CI はこの固定リビジョンを取得する。公開前には、そのコミットが文法リポジトリの
+公開先から取得可能なことを確認する。
 
 ### `compiling Rust extension` でインストールに失敗する場合
 
@@ -143,9 +158,9 @@ Zed の `settings.json` またはプロジェクトの `.zed/settings.json`:
 フォールバックするが、コードをコメント扱いにする設定ではない。
 文字列・コメント・バッククォート名の中の `^` は、それぞれ本来の色のまま。
 
-VSCode 版と同じ半透明グレーにするには、Zed のユーザー設定に以下を追加する。
-One Dark／One Light ではコメント色とほぼ同じ明るさにしている
-（`#5d636f`／`a2a3a7`）。さらに薄くするにはアルファ値を `#rrggbbaa` の形で下げる:
+コメント色に合わせるには、Zed のユーザー設定に以下を追加する。
+One Dark／One Light のコメント色（`#5d636f`／`#a2a3a7`）を指定している。
+さらに薄くするにはアルファ値を `#rrggbbaa` の形で下げる:
 
 ```json
 {
@@ -215,7 +230,7 @@ npm run smoke:dap -- ../lhat/build/release/lhat.exe
 検証対象:
 
 - Tree-sitter コーパス: ハット・Unicode・スコープ指定子・数値キー・文字列・補間・コメント・LTON
-- 全 Zed クエリーのコンパイルと L^ / LTON 間の一致
+- L^ / LTON それぞれの文法に対する全 Zed クエリーのコンパイル、ハットの範囲とアウトラインの検証
 - LSP: 診断・セマンティックトークン・ホバー・定義・参照・名前変更・全文同期
 - DAP: 初期化・起動・entry 停止・スレッド・スタック・スコープ・切断
 
@@ -225,7 +240,7 @@ npm run smoke:dap -- ../lhat/build/release/lhat.exe
 ### 未コミットの文法を開発拡張でプレビューする
 
 `dist/dev` を一度インストールした環境では、`npm run preview:grammar` で
-作業ツリーの文法を生成・テストし、Zed と同じ wasi-sdk オプションでコンパイルして
+外部文法リポジトリの作業ツリーを生成・テストし、Zed と同じ wasi-sdk オプションでコンパイルして
 `dist/dev` の文法 WASM と言語設定を更新できる。Zed の拡張をリロードして確認する。
 Windows では Zed が取得した wasi-sdk を検出する。それ以外では `WASI_SDK_PATH` を指定する。
 
@@ -238,16 +253,19 @@ Windows では Zed が取得した wasi-sdk を検出する。それ以外では
 extension.toml             拡張・LSP・DAP・文法の登録
 src/                       Rust/WASM の起動処理
 languages/lhat/             L^ の設定・Tree-sitter クエリー
-languages/lton/             LTON の設定・同一クエリー
-tree-sitter-lhat/           文法・外部スキャナー・生成済みパーサー・テスト
+languages/lton/             LTON の設定・クエリー
+../tree-sitter-lhat/        独立した文法・外部スキャナー・生成済みパーサー・テスト
 debug_adapter_schemas/     デバッグ設定スキーマ
 scripts/                   開発用パッケージ生成・検証
 examples/                  Zed での確認用ファイル
 ```
 
-TextMate 文法から Tree-sitter への単純な形式変換はできないため、
-`lhat-vscode-extension` の言語設定と `lhat/DesignDocuments/01-lexical-structure.md`
-を参照して新しい文法を実装した。クエリーは Zed が言語ごとに読み込むため
-L^ / LTON の両方に置き、`check:queries` で差分を検知する。
+文法・スキャナー・生成済みパーサー・文法コーパスは `../tree-sitter-lhat` 側で変更する。
+この拡張の `generate` / `test` は、その別リポジトリに対する実行ラッパー。
+Zed の設定・クエリー・LSP/DAP 接続と統合検証用サンプルは、このリポジトリで変更する。
+クエリーは Zed が言語ごとに読み込むため L^ / LTON の両方に置き、
+`check:queries` で各文法との互換性を検証する。
+公開時は文法のコミットを先に push し、`extension.toml` の両文法を同じ
+コミット ID に固定する。CI もそのリビジョンを取得して検証する。
 
 License: Apache-2.0（VSCode 版と同じ）。

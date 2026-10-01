@@ -1,22 +1,18 @@
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { readdirSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-
-const root = fileURLToPath(new URL('../', import.meta.url));
-const cli = path.join(root, 'node_modules/tree-sitter-cli', process.platform === 'win32' ? 'tree-sitter.exe' : 'tree-sitter');
-for (const name of readdirSync(path.join(root, 'languages/lhat')).filter(name => name.endsWith('.scm'))) {
-  const query = path.join(root, 'languages/lhat', name);
-  if (name !== 'outline.scm') {
-    assert.equal(readFileSync(query, 'utf8'), readFileSync(path.join(root, 'languages/lton', name), 'utf8'), `${name}: LTON queries must match L^`);
+import { root, cli, grammarRoot, grammars } from './grammar-path.mjs';
+for (const { name: language, directory, example } of grammars) {
+  for (const name of readdirSync(path.join(root, 'languages', language)).filter(name => name.endsWith('.scm'))) {
+    const query = path.join(root, 'languages', language, name);
+    const result = spawnSync(cli, ['query', query, example], {
+      cwd: directory, encoding: 'utf8',
+    });
+    if (result.error) throw result.error;
+    assert.equal(result.status, 0, `${name}: ${result.stderr}\n${result.stdout}`);
+    console.log(`OK ${language}/${name}`);
   }
-  const result = spawnSync(cli, ['query', query, path.join(root, 'examples/hello.lh')], {
-    cwd: path.join(root, 'tree-sitter-lhat'), encoding: 'utf8',
-  });
-  if (result.error) throw result.error;
-  assert.equal(result.status, 0, `${name}: ${result.stderr}\n${result.stdout}`);
-  console.log(`OK ${name}`);
 }
 
 // Check actual capture ranges, not just whether the query compiles. Hats inside
@@ -24,7 +20,7 @@ for (const name of readdirSync(path.join(root, 'languages/lhat')).filter(name =>
 // or builtin type must still have its own color on the word before the hat.
 const result = spawnSync(cli, [
   'query', path.join(root, 'languages/lhat/highlights.scm'), path.join(root, 'examples/hats.lh'),
-], { cwd: path.join(root, 'tree-sitter-lhat'), encoding: 'utf8' });
+], { cwd: grammarRoot, encoding: 'utf8' });
 if (result.error) throw result.error;
 assert.equal(result.status, 0, result.stderr);
 const captures = [...result.stdout.matchAll(/capture: \d+ - ([\w.]+), start: \((\d+), (\d+)\), end: \((\d+), (\d+)\), text: `([^\r\n]*)`/g)]
@@ -38,3 +34,16 @@ assert.ok(captures.some(capture => capture.name === 'keyword' && capture.text ==
 assert.ok(captures.some(capture => capture.name === 'type.builtin' && capture.text === 'number'));
 assert.ok(!captures.some(capture => capture.name === 'variable' && capture.text === 'let'));
 console.log('OK hat captures: suffixes only; words, strings, comments and name literals preserved');
+
+for (const { name, directory, example } of grammars) {
+  const file = name === 'lhat' ? path.join(root, 'examples/structure.lh') : example;
+  const parsed = spawnSync(cli, ['parse', '--quiet', file], { cwd: directory, encoding: 'utf8' });
+  assert.equal(parsed.status, 0, parsed.stdout + parsed.stderr);
+  const outline = spawnSync(cli, ['query', path.join(root, 'languages', name, 'outline.scm'), file], { cwd: directory, encoding: 'utf8' });
+  assert.equal(outline.status, 0, outline.stderr);
+  const names = [...outline.stdout.matchAll(/capture: \d+ - name,.*text: `([^`]+)`/g)].map(match => match[1]);
+  for (const expected of name === 'lhat' ? ['example', 'if', 'factorial', 'Counter', 'increment', 'get', 'Color'] : ['name', 'enabled', 'values']) {
+    assert.ok(names.includes(expected), `${name} outline is missing ${expected}: ${names}`);
+  }
+  console.log(`OK ${name} outline names`);
+}

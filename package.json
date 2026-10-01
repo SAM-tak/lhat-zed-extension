@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "generate": "cd tree-sitter-lhat && tree-sitter generate --abi 14",
-    "test": "cd tree-sitter-lhat && tree-sitter test",
+    "generate": "node scripts/grammar.mjs generate",
+    "test": "node scripts/grammar.mjs test",
     "check:queries": "node scripts/check-queries.mjs",
     "smoke:lsp": "node scripts/smoke-lsp.mjs",
     "smoke:dap": "node scripts/smoke-dap.mjs",

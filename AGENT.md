@@ -6,6 +6,16 @@
 
 ## 関連プロジェクト
 
+### tree-sitter-lhat
+
+L^ / LTON の Tree-sitter 文法・生成済みパーサー・文法テスト。
+
+@../tree-sitter-lhat/
+
+文法はこの別リポジトリで管理する。この拡張内に文法や生成済み C ソースを複製しない。
+Zed 固有の設定・クエリーは `languages/` に置き、`extension.toml` で文法のコミットを参照する。
+文法チェックアウトの場所は `LHAT_GRAMMAR_PATH` で変更可能。
+
 ### lhat
 
 プログラミング言語 L^ 本体

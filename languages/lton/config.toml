@@ -1,5 +1,5 @@
 name = "LTON"
-grammar = "lhat"
+grammar = "lton"
 path_suffixes = ["lton"]
 line_comments = ["# "]
 block_comment = ["#[", "]#"]

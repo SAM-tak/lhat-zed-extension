@@ -1,0 +1,13 @@
+# Outline and function-selection example. Bare words remain valid names.
+module^example
+let^if = 1
+let^factorial = f^n:number^ -> number^ {
+    if^n <= 1: 1 el^: n * this^(n - 1);
+}
+let^Counter = def^{
+    self^{ value = 0 },
+    increment = p^self^{ self^.value += 1 },
+    get = f^self^{ self^.value }
+}
+enum^Color { Red, Green, Blue }
+print(factorial(5), if)

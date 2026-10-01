@@ -4,9 +4,3 @@
 /extension.wasm
 /grammars/
 /dist/
-/tree-sitter-lhat/*.dll
-/tree-sitter-lhat/*.so
-/tree-sitter-lhat/*.dylib
-/tree-sitter-lhat/*.obj
-/tree-sitter-lhat/*.lib
-/tree-sitter-lhat/*.exp
